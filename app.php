@@ -6,14 +6,14 @@
 function print_debug_array($itemlist){
 	
 	$display_frame = "";
-	for($tmp_i = 0 ; $tmp_i < 40 ; $tmp_i++){
+	for($tmp_i = 0 ; $tmp_i < 50 ; $tmp_i++){
 		$display_frame .= "-";
 	}
 	echo $display_frame."\n";
 	
 	foreach( $itemlist as $key => $value)
 	{
-		while(strlen($key) < 20){
+		while(strlen($key) < 30){
 			$key .= " ";
 		}
 		if($value === true){
@@ -137,7 +137,7 @@ function music_file_to_array($file_name){
 
 
 
-function play_bell($day_number, $volume_level){
+function play_bell($day_number, $volume_level, $config_file_array){
 	
 	set_volume_level($volume_level);
 	
@@ -145,16 +145,16 @@ function play_bell($day_number, $volume_level){
 		stop_mplayer();
 	}
 	
-	$mplayer_patch = "/var/www/html/bells/0".intval($day_number).".wav";
+	$mplayer_patch = $config_file_array["bells_folder_path"]."0".intval($day_number).".wav";
 	$mplayer_patch_escaped = escapeshellarg($mplayer_patch);
 
-	$log_file_path = "/var/www/html/log/".date("Y-m-d").".log";
+	$log_file_path = $config_file_array["log_folder_path"].date("Y-m-d").".log";
 	$log_file_path_escaped = escapeshellarg($log_file_path);
 
 	
 	exec('mplayer '.$mplayer_patch_escaped.' -msglevel all=4 </dev/null | tee -a '.$log_file_path_escaped.' > /dev/null 2>&1 &');
 }
-function play_music($filename, $volume_level){
+function play_music($filename, $volume_level, $config_file_array){
 	
 	set_volume_level($volume_level);
 	
@@ -162,10 +162,10 @@ function play_music($filename, $volume_level){
 		stop_mplayer();
 	}
 	
-	$mplayer_patch = "/var/www/html/music/".$filename;
+	$mplayer_patch = $config_file_array["music_folder_path"].$filename;
 	$mplayer_patch_escaped = escapeshellarg($mplayer_patch);
 
-	$log_file_path = "/var/www/html/log/".date("Y-m-d").".log";
+	$log_file_path = $config_file_array["log_folder_path"].date("Y-m-d").".log";
 	$log_file_path_escaped = escapeshellarg($log_file_path);
 
 	
@@ -173,15 +173,15 @@ function play_music($filename, $volume_level){
 }
 
 
-function play_radio($radio_number, $volume_level){
-	$radio_array = radio_file_to_array("/home/user/Break_Controller/config/radio.txt");
-	
+function play_radio($radio_number, $volume_level, $config_file_array){
+	$radio_array = radio_file_to_array($config_file_array["radio_list_file"]);
+		
 	if(isset($radio_array[$radio_number-1])){
 	
 		$mplayer_patch = $radio_array[$radio_number-1]->radio_url;
 		$mplayer_patch_escaped = escapeshellarg($mplayer_patch);
 
-		$log_file_path = "/var/www/html/log/".date("Y-m-d").".log";
+		$log_file_path = $config_file_array["log_folder_path"].date("Y-m-d").".log";
 		$log_file_path_escaped = escapeshellarg($log_file_path);
 
 		set_volume_level($volume_level);
@@ -194,6 +194,13 @@ function play_radio($radio_number, $volume_level){
 
 //var_dump( music_file_to_array("/var/www/html/music.conf") );
 //die();
+
+$app_conf_array = config_file_to_array("app.conf");
+//print_r($app_conf_array);
+
+//die();
+
+
 
 
 $bell_ringing = false;
@@ -209,7 +216,7 @@ $last_realy_state = 0;
 
 while(1){
 
-	$config_file_array = config_file_to_array("/home/user/Break_Controller/config/controler.conf");
+	$config_file_array = config_file_to_array($app_conf_array["main_config_file_path"]);
 
 
 	//relay
@@ -249,7 +256,7 @@ while(1){
 			foreach($break_time_array as $break_time_array_foreach){
 				
 				if( (date("H:i") == $break_time_array_foreach) && ($bell_ringing == false) ){
-					play_bell($day_number, $config_file_array["volume"]);
+					play_bell($day_number, $config_file_array["volume"], $app_conf_array);
 					
 					//prevent starting over and over again
 					$last_bell_ringing_time = date("H:i");
@@ -267,7 +274,7 @@ while(1){
 	
 	if($config_file_array["music"] == "1"){
 		
-		$music_file_array = music_file_to_array("/home/user/Break_Controller/config/music.conf");
+		$music_file_array = music_file_to_array($app_conf_array["music_config_file_path"]);
 		
 		foreach($music_file_array as $music_file_array_val){
 			
@@ -279,14 +286,14 @@ while(1){
 				if( intval($music_file_array_val->music_name) != 0 ){
 					//music radio
 					stop_mplayer();
-					play_radio( intval($music_file_array_val->music_name,10), $config_file_array["volume_music"]);
+					play_radio( intval($music_file_array_val->music_name,10), $config_file_array["volume_music"], $app_conf_array);
 					$music_playing = true;
 					$radio_playing = false;// radio_playing lock disabled to allow auto start radio again
 					$last_music_stop_time = "";
 					
 				}else{
 					//music file
-					play_music( $music_file_array_val->music_name, $config_file_array["volume_music"] );
+					play_music( $music_file_array_val->music_name, $config_file_array["volume_music"], $app_conf_array);
 					$music_playing = true;
 					$radio_playing = false;// radio_playing lock disabled to allow auto start radio again
 					$last_music_stop_time = "";
@@ -327,7 +334,7 @@ while(1){
 	//radio_playing lock must be false to prevent starting over and over again ;)) 
 	if( ($config_file_array["radio"] != 0) && ($bell_ringing == false) && ($music_playing == false) && ($radio_playing == false) ){
 		$last_radio_playing_number = intval($config_file_array["radio"],10);
-		play_radio($config_file_array["radio"], $config_file_array["volume_music"]);
+		play_radio($config_file_array["radio"], $config_file_array["volume_music"], $app_conf_array);
 		$radio_playing = true;	
 	}
 	
