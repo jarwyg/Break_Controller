@@ -174,7 +174,7 @@ function play_music($filename, $volume_level){
 
 
 function play_radio($radio_number, $volume_level){
-	$radio_array = radio_file_to_array("/var/www/html/radio.txt");
+	$radio_array = radio_file_to_array("/home/user/Break_Controller/config/radio.txt");
 	
 	if(isset($radio_array[$radio_number-1])){
 	
@@ -209,7 +209,7 @@ $last_realy_state = 0;
 
 while(1){
 
-	$config_file_array = config_file_to_array("/var/www/html/controler.conf");
+	$config_file_array = config_file_to_array("/home/user/Break_Controller/config/controler.conf");
 
 
 	//relay
@@ -267,7 +267,7 @@ while(1){
 	
 	if($config_file_array["music"] == "1"){
 		
-		$music_file_array = music_file_to_array("/var/www/html/music.conf");
+		$music_file_array = music_file_to_array("/home/user/Break_Controller/config/music.conf");
 		
 		foreach($music_file_array as $music_file_array_val){
 			
