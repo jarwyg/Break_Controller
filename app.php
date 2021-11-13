@@ -192,15 +192,7 @@ function play_radio($radio_number, $volume_level, $config_file_array){
 }
 
 
-//var_dump( music_file_to_array("/var/www/html/music.conf") );
-//die();
-
 $app_conf_array = config_file_to_array("app.conf");
-//print_r($app_conf_array);
-
-//die();
-
-
 
 
 $bell_ringing = false;
@@ -257,7 +249,7 @@ while(1){
 				
 				if( (date("H:i") == $break_time_array_foreach) && ($bell_ringing == false) ){
 					play_bell($day_number, $config_file_array["volume"], $app_conf_array);
-					
+					$last_volume = $config_file_array["volume"];
 					//prevent starting over and over again
 					$last_bell_ringing_time = date("H:i");
 					$bell_ringing = true;//bell_ringing lock enabled
