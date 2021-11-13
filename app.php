@@ -300,9 +300,7 @@ while(1){
 				
 			}
 			
-			//echo $music_file_array_val->music_start." ";
-			//echo $music_file_array_val->music_stop." ";
-			//echo $music_file_array_val->music_name."\n";
+
 			
 			
 		}
