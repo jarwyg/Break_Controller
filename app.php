@@ -217,15 +217,38 @@ while(1){
 	$realy_mode = $realy[0];
 	$realy_enable_time = $realy[1];
 	$realy_disable_time = $realy[2];
-	if( ($realy_enable_time == date("H:i")) && ($last_realy_state == 0) ){
+	
+	if($realy_mode == 0 && $last_realy_state == 1){
+		
+		$comport_escaped = escapeshellarg($comport);
+		exec('usb_relay '.$comport_escaped.' 0');
+		
+		$last_realy_state = 0;
+		
+	}else if($realy_mode == 1 && $last_realy_state == 0){
+		
+		$comport_escaped = escapeshellarg($comport);
+		exec('usb_relay '.$comport_escaped.' 1');
 		
 		$last_realy_state = 1;
 		
-	}else if( ($realy_disable_time == date("H:i")) && ($last_realy_state == 1) ){
-		
-		$last_realy_state = 0;
+	}else if($realy_mode == 2){
+	
+		if( ($realy_enable_time == date("H:i")) && ($last_realy_state == 0) ){
+			
+			$comport_escaped = escapeshellarg($comport);
+			exec('usb_relay '.$comport_escaped.' 1');
+			
+			$last_realy_state = 1;
+			
+		}else if( ($realy_disable_time == date("H:i")) && ($last_realy_state == 1) ){
+			
+			$comport_escaped = escapeshellarg($comport);
+			exec('usb_relay '.$comport_escaped.' 0');
+			
+			$last_realy_state = 0;
+		}
 	}
-
 
 	if($config_file_array["state"] == "on"){
 
